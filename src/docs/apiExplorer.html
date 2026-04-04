@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuddyScript API Live Tester</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --header-purple: #6b5eae;
+            --bg-gray: #f8f9fa;
+            --text-dark: #343a40;
+            --text-muted: #868e96;
+            --post-blue: #007bff;
+            --get-green: #28a745;
+            --put-orange: #fd7e14;
+            --del-red: #dc3545;
+            --yellow-section: #fff9db;
+            --yellow-border: #ffe066;
+            --blue-section: #e7f5ff;
+            --blue-border: #a5d8ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .erp-header {
+            background-color: var(--header-purple);
+            padding: 0.75rem 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .erp-header h1 {
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-buttons .btn {
+            background-color: white;
+            color: var(--text-dark);
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+            padding: 0.4rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin-top: 2rem;
+        }
+
+        .group-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+
+        .group-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .group-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .count-badge {
+            background-color: #fab005;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .api-row {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .api-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .api-row:last-child {
+            border-bottom: none;
+        }
+
+        .method-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            color: white;
+            min-width: 50px;
+            text-align: center;
+            margin-right: 1.5rem;
+        }
+
+        .method-POST {
+            background-color: var(--post-blue);
+        }
+
+        .method-GET {
+            background-color: var(--get-green);
+        }
+
+        .method-PUT {
+            background-color: var(--put-orange);
+        }
+
+        .method-DELETE {
+            background-color: var(--del-red);
+        }
+
+        .api-path {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+            flex-grow: 1;
+        }
+
+        .status-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .status-PROTECTED {
+            background-color: #fff0f0;
+            color: #ff6b6b;
+            border: 1px solid #ffc9c9;
+        }
+
+        .status-PUBLIC {
+            background-color: #ebfbee;
+            color: #40c057;
+            border: 1px solid #b2f2bb;
+        }
+
+        /* Detail Sections */
+        .api-details {
+            display: none;
+            padding: 1.5rem;
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-section {
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid transparent;
+        }
+
+        .yellow-section {
+            background-color: var(--yellow-section);
+            border-color: var(--yellow-border);
+        }
+
+        .blue-section {
+            background-color: var(--blue-section);
+            border-color: var(--blue-border);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title img {
+            width: 18px;
+            margin-right: 8px;
+        }
+
+        .technical-info {
+            font-size: 0.85rem;
+        }
+
+        .info-row {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 700;
+            color: #212529;
+            width: 100px;
+            display: inline-block;
+        }
+
+        .side-effects {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            border-left: 4px solid #fa5252;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .side-effects-title {
+            color: #fa5252;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border: 1px solid #dee2e6;
+            margin: 0;
+        }
+
+        .response-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .action-container {
+            margin-top: 1.5rem;
+            text-align: right;
+        }
+
+        .btn-send {
+            background-color: var(--post-blue);
+            color: white;
+            font-weight: 700;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="erp-header">
+        <h1>🚀 BuddyScript API Live Explorer</h1>
+        <div class="header-buttons">
+            <button class="btn">📚 Documentation</button>
+            <button class="btn">🔑 Login</button>
+        </div>
+    </header>
+
+    <div class="container pb-5" id="explorer-container">
+        <!-- Content will be rendered here by JS -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/api/docs/explorer.js"></script>
+
+</body>
+
+</html>
