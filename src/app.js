@@ -14,7 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import docRoutes from './routes/docRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
 
@@ -67,6 +67,7 @@ app.use('/api/docs', docRoutes); // Catch-all for data and other doc routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 // Root Welcome Route

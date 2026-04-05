@@ -1,6 +1,8 @@
 import Like from '../models/Like.js';
 import Post from '../models/Post.js';
 import Comment from '../models/Comment.js';
+import Notification from '../models/Notification.js';
+
 
 // @desc    Toggle Like for a post or comment
 // @route   POST /api/likes/:targetId
@@ -33,6 +35,14 @@ export const toggleLike = async (req, res, next) => {
             // Unlike
             await alreadyLiked.deleteOne();
             await TargetModel.findByIdAndUpdate(targetId, { $inc: { likesCount: -1 } });
+            
+            // Remove notification if exists
+            await Notification.findOneAndDelete({ 
+                sender: req.user._id, 
+                targetId, 
+                type: 'like' 
+            });
+
             res.status(200).json({ success: true, message: 'Unliked successfully' });
         } else {
             // Like
@@ -42,6 +52,18 @@ export const toggleLike = async (req, res, next) => {
                 targetType
             });
             await TargetModel.findByIdAndUpdate(targetId, { $inc: { likesCount: 1 } });
+            
+            // Create notification if target owner is not the liker
+            if (target.user.toString() !== req.user._id.toString()) {
+                await Notification.create({
+                    recipient: target.user,
+                    sender: req.user._id,
+                    type: 'like',
+                    targetType,
+                    targetId
+                });
+            }
+
             res.status(201).json({ success: true, message: 'Liked successfully' });
         }
     } catch (error) {

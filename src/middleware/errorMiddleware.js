@@ -20,10 +20,11 @@ const errorHandler = (err, req, res, next) => {
         message = Object.values(err.errors).map((val) => val.message);
     }
 
+    // ALWAYS return the raw backend error for this debugging pass
     res.status(statusCode).json({
         success: false,
-        message,
-        stack: process.env.NODE_ENV === 'production' ? null : err.stack
+        message: message || (err && err.toString ? err.toString() : 'Unknown Error'),
+        stack: err.stack
     });
 };
 

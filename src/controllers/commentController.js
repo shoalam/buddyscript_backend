@@ -1,5 +1,7 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
+import Notification from '../models/Notification.js';
+
 
 // @desc    Add a comment or reply
 // @route   POST /api/posts/:postId/comments
@@ -21,6 +23,10 @@ export const addComment = async (req, res, next) => {
             content
         };
 
+        let notificationRecipient = null;
+        let targetTypeForNotification = 'Post';
+        let targetIdForNotification = postId;
+
         if (parentCommentId) {
             const parent = await Comment.findById(parentCommentId);
             if (!parent) {
@@ -28,12 +34,28 @@ export const addComment = async (req, res, next) => {
                 throw new Error('Parent comment not found');
             }
             commentData.parentComment = parentCommentId;
+            notificationRecipient = parent.user;
+            targetTypeForNotification = 'Comment';
+            targetIdForNotification = parentCommentId;
+        } else {
+            notificationRecipient = post.user;
         }
 
         const comment = await Comment.create(commentData);
 
         // Update post comment count
         await Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
+
+        // Dispatch Notification
+        if (notificationRecipient.toString() !== req.user._id.toString()) {
+            await Notification.create({
+                recipient: notificationRecipient,
+                sender: req.user._id,
+                type: 'comment',
+                targetType: targetTypeForNotification,
+                targetId: targetIdForNotification
+            });
+        }
 
         res.status(201).json({ success: true, comment });
     } catch (error) {

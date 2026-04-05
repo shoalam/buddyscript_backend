@@ -1,4 +1,7 @@
 import Post from '../models/Post.js';
+import Follow from '../models/Follow.js';
+import Notification from '../models/Notification.js';
+
 
 // @desc    Create a new post
 // @route   POST /api/posts
@@ -21,6 +24,23 @@ export const createPost = async (req, res, next) => {
             mediaUrl: mediaUrl || '',
             visibility: visibility || 'public'
         });
+
+        // Dispatch Notifications to Followers (Non-blocking)
+        try {
+            const followers = await Follow.find({ following: req.user._id });
+            if (followers.length > 0) {
+                const notifications = followers.map(f => ({
+                    recipient: f.follower,
+                    sender: req.user._id,
+                    type: 'post',
+                    targetType: 'Post',
+                    targetId: post._id
+                }));
+                await Notification.insertMany(notifications);
+            }
+        } catch (notifErr) {
+            console.error('Failed to dispatch notifications for new post:', notifErr);
+        }
 
         res.status(201).json({ success: true, post });
     } catch (error) {
