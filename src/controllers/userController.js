@@ -38,3 +38,18 @@ export const updateUserProfile = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get all users (excluding current)
+// @route   GET /api/users
+// @access  Private
+export const getUsers = async (req, res, next) => {
+    try {
+        const users = await User.find({ _id: { $ne: req.user._id } })
+            .select('username profilePic')
+            .limit(10);
+
+        res.status(200).json({ success: true, users });
+    } catch (error) {
+        next(error);
+    }
+};
