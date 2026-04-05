@@ -38,6 +38,30 @@ export const protect = async (req, res, next) => {
     }
 };
 
+// Optional protect middleware (populates req.user if token exists, but doesn't block)
+export const optionalProtect = async (req, res, next) => {
+    let token;
+
+    token = req.cookies.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.userId).select('-password');
+            next();
+        } catch (error) {
+            console.error('Optional Auth error:', error.message);
+            // Don't throw, just proceed without req.user
+            next();
+        }
+    } else {
+        next();
+    }
+};
+
 // Admin middleware
 export const admin = (req, res, next) => {
     if (req.user && req.user.roles.includes('admin')) {

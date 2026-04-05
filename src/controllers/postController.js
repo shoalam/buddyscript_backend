@@ -53,12 +53,14 @@ export const createPost = async (req, res, next) => {
 // @access  Public/Auth
 export const getPosts = async (req, res, next) => {
     try {
-        const query = {
-            $or: [
-                { visibility: 'public' },
-                { user: req.user?._id }
-            ]
-        };
+        const query = req.user
+            ? {
+                $or: [
+                    { visibility: 'public' },
+                    { user: req.user._id }
+                ]
+            }
+            : { visibility: 'public' };
 
         const posts = await Post.find(query)
             .populate('user', 'username profilePic')

@@ -15,18 +15,18 @@ import {
     toggleLike, 
     getLikers 
 } from '../controllers/likeController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalProtect } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
 // Post Routes
 router.route('/')
-    .get(getPosts)
+    .get(optionalProtect, getPosts)
     .post(protect, upload.single('image'), createPost);
 
 router.route('/:id')
-    .get(getPostById)
+    .get(optionalProtect, getPostById)
     .put(protect, updatePost)
     .delete(protect, deletePost);
 
