@@ -13,6 +13,8 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import docRoutes from './routes/docRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+
 
 dotenv.config();
 
@@ -25,7 +27,9 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Security Middleware
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true
@@ -61,7 +65,9 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api-docs', docRoutes);
 app.use('/api/docs', docRoutes); // Catch-all for data and other doc routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+
 
 // Root Welcome Route
 app.get('/', (req, res) => {

@@ -6,9 +6,11 @@ import Post from '../models/Post.js';
 export const createPost = async (req, res, next) => {
     try {
         const { content, visibility } = req.body;
-        const mediaUrl = req.file ? req.file.path : req.body.mediaUrl;
+        // Correct forward slashes for URL compatibility
+        const mediaUrl = req.file ? req.file.path.replace(/\\/g, '/') : req.body.mediaUrl;
 
         if (!content && !mediaUrl) {
+
             res.status(400);
             throw new Error('Post must have content or media');
         }
