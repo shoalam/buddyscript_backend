@@ -1,6 +1,8 @@
 import Post from '../models/Post.js';
 import Follow from '../models/Follow.js';
 import Notification from '../models/Notification.js';
+import { unlink } from 'fs/promises';
+import path from 'path';
 
 
 // @desc    Create a new post
@@ -63,7 +65,7 @@ export const getPosts = async (req, res, next) => {
             : { visibility: 'public' };
 
         const posts = await Post.find(query)
-            .populate('user', 'username profilePic')
+            .populate('user', 'username firstName lastName profilePic')
             .sort({ createdAt: -1 })
             .lean();
 
@@ -78,7 +80,7 @@ export const getPosts = async (req, res, next) => {
 // @access  Public/Auth
 export const getPostById = async (req, res, next) => {
     try {
-        const post = await Post.findById(req.params.id).populate('user', 'username profilePic');
+        const post = await Post.findById(req.params.id).populate('user', 'username firstName lastName profilePic');
 
         if (!post) {
             res.status(404);
@@ -114,10 +116,49 @@ export const updatePost = async (req, res, next) => {
             throw new Error('Not authorized to update this post');
         }
 
-        post = await Post.findByIdAndUpdate(req.params.id, req.body, {
+        const updates = {};
+
+        // Update content if provided
+        if (req.body.content !== undefined) {
+            updates.content = req.body.content;
+        }
+
+        // Update visibility if provided
+        if (req.body.visibility !== undefined) {
+            updates.visibility = req.body.visibility;
+        }
+
+        // Handle image upload or removal
+        const oldMediaUrl = post.mediaUrl;
+
+        if (req.file) {
+            // New image uploaded — replace old one
+            updates.mediaUrl = req.file.path.replace(/\\/g, '/');
+
+            // Delete old image file from disk
+            if (oldMediaUrl) {
+                try {
+                    await unlink(path.resolve(oldMediaUrl));
+                } catch (e) {
+                    console.warn('Could not delete old image:', oldMediaUrl, e.message);
+                }
+            }
+        } else if (req.body.removeImage === 'true' || req.body.removeImage === true) {
+            // Remove image without replacement
+            updates.mediaUrl = '';
+            if (oldMediaUrl) {
+                try {
+                    await unlink(path.resolve(oldMediaUrl));
+                } catch (e) {
+                    console.warn('Could not delete old image:', oldMediaUrl, e.message);
+                }
+            }
+        }
+
+        post = await Post.findByIdAndUpdate(req.params.id, updates, {
             new: true,
             runValidators: true
-        });
+        }).populate('user', 'username firstName lastName profilePic');
 
         res.status(200).json({ success: true, post });
     } catch (error) {

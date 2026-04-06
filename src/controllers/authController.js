@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 // @access  Public
 export const registerUser = async (req, res, next) => {
     try {
-        const { username, email, password } = registerSchema.parse(req.body);
+        const { username, firstName, lastName, email, password } = registerSchema.parse(req.body);
 
         const userExists = await User.findOne({ 
             $or: [{ email }, { username }] 
@@ -17,11 +17,13 @@ export const registerUser = async (req, res, next) => {
 
         if (userExists) {
             res.status(400);
-            throw new Error('User already exists');
+            throw new Error('User with this email or username already exists');
         }
 
         const user = await User.create({
             username,
+            firstName,
+            lastName,
             email,
             password
         });
@@ -32,6 +34,8 @@ export const registerUser = async (req, res, next) => {
                 success: true,
                 _id: user._id,
                 username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 email: user.email,
                 roles: user.roles,
                 token,
@@ -62,6 +66,8 @@ export const loginUser = async (req, res, next) => {
                 success: true,
                 _id: user._id,
                 username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 email: user.email,
                 roles: user.roles,
                 token,
@@ -132,6 +138,8 @@ export const getMe = async (req, res) => {
     const user = {
         _id: req.user._id,
         username: req.user.username,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
         email: req.user.email,
         roles: req.user.roles,
         bio: req.user.bio,

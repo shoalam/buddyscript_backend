@@ -9,6 +9,7 @@ import {
 import { 
     addComment, 
     getComments, 
+    updateComment,
     deleteComment 
 } from '../controllers/commentController.js';
 import { 
@@ -27,7 +28,7 @@ router.route('/')
 
 router.route('/:id')
     .get(optionalProtect, getPostById)
-    .put(protect, updatePost)
+    .put(protect, upload.single('image'), updatePost)
     .delete(protect, deletePost);
 
 // Comment Routes
@@ -35,7 +36,9 @@ router.route('/:postId/comments')
     .post(protect, addComment)
     .get(getComments);
 
-router.delete('/comments/:id', protect, deleteComment);
+router.route('/comments/:id')
+    .put(protect, updateComment)
+    .delete(protect, deleteComment);
 
 // Like Routes
 router.route('/:targetId/likes')

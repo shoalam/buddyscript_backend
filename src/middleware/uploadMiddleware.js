@@ -31,6 +31,11 @@ const upload = multer({
     storage,
     limits: { fileSize: 5000000 }, // 5MB limit
     fileFilter: function (req, file, cb) {
+        // Skip validation if no real file is attached
+        // (browser sends empty file field with empty originalname when no file is selected)
+        if (!file || !file.originalname || file.originalname.trim() === '') {
+            return cb(null, false); // reject the empty entry silently
+        }
         checkFileType(file, cb);
     }
 });

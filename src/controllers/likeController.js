@@ -10,7 +10,7 @@ import Notification from '../models/Notification.js';
 export const toggleLike = async (req, res, next) => {
     try {
         const { targetId } = req.params;
-        const { targetType } = req.body; // 'Post' or 'Comment'
+        const { targetType, reactionType = 'Like' } = req.body; 
 
         if (!['Post', 'Comment'].includes(targetType)) {
             res.status(400);
@@ -32,24 +32,32 @@ export const toggleLike = async (req, res, next) => {
         });
 
         if (alreadyLiked) {
-            // Unlike
-            await alreadyLiked.deleteOne();
-            await TargetModel.findByIdAndUpdate(targetId, { $inc: { likesCount: -1 } });
-            
-            // Remove notification if exists
-            await Notification.findOneAndDelete({ 
-                sender: req.user._id, 
-                targetId, 
-                type: 'like' 
-            });
+            if (alreadyLiked.reactionType === reactionType) {
+                // Same reaction: Unlike
+                await alreadyLiked.deleteOne();
+                await TargetModel.findByIdAndUpdate(targetId, { $inc: { likesCount: -1 } });
+                
+                // Remove notification if exists
+                await Notification.findOneAndDelete({ 
+                    sender: req.user._id, 
+                    targetId, 
+                    type: 'like' 
+                });
 
-            res.status(200).json({ success: true, message: 'Unliked successfully' });
+                res.status(200).json({ success: true, message: 'Unliked successfully' });
+            } else {
+                // Different reaction: Update type
+                alreadyLiked.reactionType = reactionType;
+                await alreadyLiked.save();
+                res.status(200).json({ success: true, message: `Changed to ${reactionType}`, reactionType });
+            }
         } else {
-            // Like
+            // New reaction
             await Like.create({
                 user: req.user._id,
                 targetId,
-                targetType
+                targetType,
+                reactionType
             });
             await TargetModel.findByIdAndUpdate(targetId, { $inc: { likesCount: 1 } });
             
@@ -64,7 +72,7 @@ export const toggleLike = async (req, res, next) => {
                 });
             }
 
-            res.status(201).json({ success: true, message: 'Liked successfully' });
+            res.status(201).json({ success: true, message: `Reacted with ${reactionType}`, reactionType });
         }
     } catch (error) {
         next(error);
@@ -77,12 +85,23 @@ export const toggleLike = async (req, res, next) => {
 export const getLikers = async (req, res, next) => {
     try {
         const { targetId } = req.params;
+        const { targetType } = req.query;
 
-        const likers = await Like.find({ targetId })
+        const query = { targetId };
+        if (targetType) query.targetType = targetType;
+
+        const likers = await Like.find(query)
             .populate('user', 'username profilePic')
+            .sort({ createdAt: -1 })
             .lean();
 
-        res.status(200).json({ success: true, count: likers.length, likers });
+        // Count categories
+        const countsByReaction = likers.reduce((acc, curr) => {
+            acc[curr.reactionType] = (acc[curr.reactionType] || 0) + 1;
+            return acc;
+        }, {});
+
+        res.status(200).json({ success: true, count: likers.length, likers, countsByReaction });
     } catch (error) {
         next(error);
     }

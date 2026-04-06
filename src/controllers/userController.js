@@ -9,6 +9,8 @@ export const updateUserProfile = async (req, res, next) => {
 
         if (user) {
             user.username = req.body.username || user.username;
+            user.firstName = req.body.firstName || user.firstName;
+            user.lastName = req.body.lastName || user.lastName;
             user.email = req.body.email || user.email;
 
             if (req.body.password) {
@@ -26,6 +28,8 @@ export const updateUserProfile = async (req, res, next) => {
                 success: true,
                 _id: updatedUser._id,
                 username: updatedUser.username,
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
                 email: updatedUser.email,
                 profilePic: updatedUser.profilePic,
                 roles: updatedUser.roles
