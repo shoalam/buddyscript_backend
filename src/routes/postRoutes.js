@@ -23,18 +23,18 @@ const router = express.Router();
 
 // Post Routes
 router.route('/')
-    .get(optionalProtect, getPosts)
+    .get(protect, getPosts)
     .post(protect, upload.single('image'), createPost);
 
 router.route('/:id')
-    .get(optionalProtect, getPostById)
+    .get(protect, getPostById)
     .put(protect, upload.single('image'), updatePost)
     .delete(protect, deletePost);
 
 // Comment Routes
 router.route('/:postId/comments')
     .post(protect, addComment)
-    .get(getComments);
+    .get(protect, getComments);
 
 router.route('/comments/:id')
     .put(protect, updateComment)
@@ -43,6 +43,6 @@ router.route('/comments/:id')
 // Like Routes
 router.route('/:targetId/likes')
     .post(protect, toggleLike)
-    .get(getLikers);
+    .get(protect, getLikers);
 
 export default router;

@@ -73,7 +73,7 @@ export const apiData = {
                     path: "/api/posts",
                     method: "GET",
                     desc: "List entries with the newest interactions displayed first.",
-                    isProtected: false,
+                    isProtected: true,
                     mainTable: "posts",
                     requiredFields: [],
                     sideEffects: "Aggregates likes and comments counts."
@@ -82,7 +82,7 @@ export const apiData = {
                     path: "/api/posts/:id",
                     method: "GET",
                     desc: "Retrieve full details and metadata for a specific entry ID.",
-                    isProtected: false,
+                    isProtected: true,
                     mainTable: "posts",
                     requiredFields: ["id"],
                     sideEffects: "Verifies entry visibility permissions."
@@ -95,6 +95,20 @@ export const apiData = {
                     mainTable: "posts",
                     requiredFields: ["id"],
                     sideEffects: "Decrements user's post count."
+                },
+                {
+                    path: "/api/posts/:id",
+                    method: "PUT",
+                    desc: "Modify an existing post (content, visibility, or image).",
+                    isProtected: true,
+                    mainTable: "posts",
+                    requiredFields: ["id"],
+                    sideEffects: "Supports formData for multipart image replacement.",
+                    body: {
+                        content: "Updated content",
+                        visibility: "public",
+                        removeImage: "true"
+                    }
                 }
             ]
         },
@@ -115,16 +129,56 @@ export const apiData = {
                     }
                 },
                 {
+                    path: "/api/posts/:postId/comments",
+                    method: "GET",
+                    desc: "Retrieve comments and nested replies for a specific post.",
+                    isProtected: true,
+                    mainTable: "comments",
+                    requiredFields: ["postId"],
+                    sideEffects: "Groups nested replies efficiently."
+                },
+                {
+                    path: "/api/posts/comments/:id",
+                    method: "PUT",
+                    desc: "Edit an existing comment or reply.",
+                    isProtected: true,
+                    mainTable: "comments",
+                    requiredFields: ["id", "content"],
+                    sideEffects: "Only allowed for the comment owner.",
+                    body: {
+                        content: "Updated comment text."
+                    }
+                },
+                {
+                    path: "/api/posts/comments/:id",
+                    method: "DELETE",
+                    desc: "Delete a specific comment or reply.",
+                    isProtected: true,
+                    mainTable: "comments",
+                    requiredFields: ["id"],
+                    sideEffects: "Decrements related post's comments count."
+                },
+                {
                     path: "/api/posts/:targetId/likes",
                     method: "POST",
-                    desc: "Toggle interaction state (Like/Unlike) for any target entry.",
+                    desc: "Toggle interaction state (Like/Love/Haha etc) for any post or comment.",
                     isProtected: true,
                     mainTable: "likes",
                     requiredFields: ["targetType"],
-                    sideEffects: "Automated count updates on target entry.",
+                    sideEffects: "Automated count updates on target entry and multi-reaction tracking.",
                     body: {
-                        targetType: "Post"
+                        targetType: "Post",
+                        reactionType: "Love"
                     }
+                },
+                {
+                    path: "/api/posts/:targetId/likes",
+                    method: "GET",
+                    desc: "Retrieve a complete list of users who reacted to a post or comment.",
+                    isProtected: true,
+                    mainTable: "likes",
+                    requiredFields: ["targetId"],
+                    sideEffects: "Calculates metric counts grouped by reactionType."
                 }
             ]
         },
